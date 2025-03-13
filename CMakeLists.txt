@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 3.31)
 
 project(web_splat)
 
-set(CMAKE_CXX_STANDARD 23)
-# set(CMAKE_SYSTEM_NAME Linux)
-# set(CMAKE_SYSTEM_PROCESSOR arm)
-
+add_executable(web_splat main.cpp)
+set_target_properties(web_splat
+    PROPERTIES
+    CXX_STANDARD 20
+    CXX_EXTENSIONS off
+    )
 
 add_subdirectory(third_party/drogon)
-add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE drogon)
+add_subdirectory(third_party/splat)
+
+target_link_libraries(web_splat PRIVATE splat drogon)

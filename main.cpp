@@ -1,5 +1,6 @@
 #include <iostream>
 #include <drogon/drogon.h>
+#include "third_party/splat/splat.h"
 
 int main(int argc, char *argv[]){
     drogon::app().setLogPath("./")
