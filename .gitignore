@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 
 third_party/splat/*
+.DS_Store
