@@ -47,10 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Обработчик кнопки "Рассчитать"
-    document.getElementById("calculate").addEventListener("click", function () {
-        alert("Расчет запущен! Пока только демо-версия.");
-        // Тут можно добавить логику для реального расчета зон покрытия
-    });
+    document.getElementById("calculate").addEventListener("click", calculate);
 });
 
 function calculate() {
@@ -64,5 +61,46 @@ function calculate() {
         alert("Пожалуйста, введите корректные координаты.");
         return;
     }
+    // Формируем данные для отправки
+    const data = {
+        tx_lat: parseFloat(document.getElementById("transmitter-lat").value),
+        tx_lon: parseFloat(document.getElementById("transmitter-lon").value),
+        tx_height: parseFloat(document.getElementById("transmitter-height").value),
     
+        rx_lat: parseFloat(document.getElementById("receiver-lat").value),
+        rx_lon: parseFloat(document.getElementById("receiver-lon").value),
+        rx_height: parseFloat(document.getElementById("receiver-height").value),
+    
+        power: parseFloat(document.getElementById("power").value),
+        frequency: parseFloat(document.getElementById("frequency").value),
+        
+        polarization_type: document.getElementById("polarization").value,
+        
+        situations_fraction: parseFloat(document.getElementById("situations-fraction").value),
+        time_fraction: parseFloat(document.getElementById("time-fraction").value),
+    
+        radioclimate: document.getElementById("radioclimate").value,
+        atmospheric_bending_constant: parseFloat(document.getElementById("atmospheric-bending-constant").value),
+    }
+
+    // Отправляем POST запрос
+    fetch('http://127.0.0.1:8000/input-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при отправке данных');
+        }
+        return response.json();
+    })
+    .then(result => {
+        alert('Успешный ответ:', result);
+    })
+    .catch(error => {
+        alert('Ошибка:', error);
+    });
 }
