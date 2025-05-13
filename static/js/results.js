@@ -6,7 +6,7 @@ const imageList = [
   { label: "Height profile", query: "static/splat/height_profile.png", id: "height_profile", type: "image" },
   { label: "Height profile norm", query: "static/splat/height_profile_norm.png", id: "height_profile_norm", type: "image" },
   { label: "Path loss profile", query: "static/splat/path_loss_profile.png", id: "path_loss_profile", type: "image" },
-  { label: "TX-RX line map", query: "static/splat/tx_rx_line_map.ppm", id: "tx_rx_line_map", type: "image" },
+  { label: "TX-RX line map", query: "static/splat/tx_rx_line_map.ppm", id: "tx_rx_line_map", type: "ppm" },
   { label: "KML file", query: "static/splat/TX-to-RX.kml", id: "kml", type: "map" },
 ];
 
@@ -54,3 +54,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+
+function drawPPM(ppmData) {
+  const lines = ppmData.split(/\r?\n/).filter(line => !line.startsWith('#'));
+  const [format, width, height, maxColor] = lines.join(' ').split(/\s+/);
+  
+  if (format !== 'P3') {
+      alert('Поддерживается только текстовый формат P3');
+      return;
+  }
+
+  const pixels = lines.slice(4).join(' ').split(/\s+/).map(Number);
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  canvas.width = parseInt(width);
+  canvas.height = parseInt(height);
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  
+  let pixelIndex = 0;
+  for (let i = 0; i < pixels.length; i += 3) {
+      imageData.data[pixelIndex++] = pixels[i];     // R
+      imageData.data[pixelIndex++] = pixels[i + 1]; // G
+      imageData.data[pixelIndex++] = pixels[i + 2]; // B
+      imageData.data[pixelIndex++] = 255;           // Alpha
+  }
+  
+  ctx.putImageData(imageData, 0, 0);
+}
