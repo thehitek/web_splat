@@ -176,3 +176,4 @@ cython_debug/
 third_party/splat/*
 .DS_Store
 poetry.lock
+static/splat

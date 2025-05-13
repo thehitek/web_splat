@@ -2,7 +2,13 @@ import subprocess
 import os
 
 class SplatHelper:
-    def __init__(self, splat_path: str, splat_hd_path: str, use_hd: bool = False):
+    def __init__(self, 
+                 splat_path: 
+                 str, 
+                 splat_hd_path: str, 
+                 working_dir = None, 
+                 use_hd: bool = False, 
+                 sdf_path: str = None):
         """
         Initialize the SplatHelper class.
 
@@ -14,7 +20,8 @@ class SplatHelper:
         self.splat_hd_path = splat_hd_path
         self.use_hd = use_hd
         self.executable = self.splat_hd_path if self.use_hd else self.splat_path
-        self.pardir = os.path.dirname(self.executable)
+        self.working_dir = working_dir if working_dir else os.path.dirname(splat_path)
+        self.sdf_path = sdf_path if sdf_path else os.path.join(self.working_dir, "sdf")
 
         # Verify the executable by running it with the `--help` flag
         if not self._verify_executable():
@@ -49,9 +56,14 @@ class SplatHelper:
 
         try:
             result = subprocess.run(
-                [self.executable, *args],
+                [self.executable, 
+                 "-d",
+                 self.sdf_path,
+                 "-metric", 
+                 *args],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                cwd=self.working_dir,
                 text=True
             )
             return result
@@ -74,13 +86,68 @@ class SplatHelper:
 
     # Wrapper methods for splat commands
 
-    def calculate_kml(self, tx_qth_filepath: str, rx_qth_filepath: str):
+    def calculate_kml(self):
         """Generate Google Earth (.kml) compatible output"""
-        return self.run("-d",
-                        "third_party/splat/sdf/", 
-                        "-metric", 
-                        "-t",
-                        tx_qth_filepath, 
-                        "-r",
-                        rx_qth_filepath, 
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
                         "-kml")
+    
+    def calculate_terrain_profile(self):
+        """Generate terrain profile"""
+        filepath = "terrain_profile.png"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
+                        "-p", filepath)
+    
+    def calculate_elevation_profile(self):
+        filepath = "elevation_profile.png"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
+                        "-e", filepath)
+    
+    def calculate_height_profile(self):
+        """Generate height profile"""
+        filepath = "height_profile.png"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
+                        "-h", filepath)
+    
+    def calculate_height_profile_norm(self):
+        """Generate normalized height profile"""
+        filepath = "height_profile_norm.png"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
+                        "-H", filepath)
+    
+    def calculate_path_loss_profile(self):
+        """Generate path loss profile"""
+        filepath = "path_loss_profile.png"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
+                        "-l", filepath)
+    
+    def calculate_tx_rx_line_map(self):
+        """Generate tx-rx line map"""
+        filepath = "tx_rx_line_map.ppm"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-r", "rx.qth", 
+                        "-o", filepath)
+    
+    def calculate_tx_coverage_map(self, rx_antenna_height: int):
+        """Generate tx coverage map"""
+        filepath = "tx_coverage_map.ppm"
+        os.remove(filepath) if os.path.exists(filepath) else None
+        return self.run("-t", "tx.qth", 
+                        "-c", str(rx_antenna_height),
+                        "-o", filepath)
+    
+    
+
+
+

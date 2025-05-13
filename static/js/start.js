@@ -53,9 +53,9 @@ document.addEventListener("DOMContentLoaded", function () {
 function calculate() {
     // Получаем координаты передатчика и приемника
     var txLat = parseFloat(document.getElementById("transmitter-lat").value);
-    var txLon = parseFloat(document.getElementById("transmitter-lon").value);
+    var txLon = 360.0 - parseFloat(document.getElementById("transmitter-lon").value);
     var rxLat = parseFloat(document.getElementById("receiver-lat").value);
-    var rxLon = parseFloat(document.getElementById("receiver-lon").value);
+    var rxLon = 360.0 - parseFloat(document.getElementById("receiver-lon").value);
     // Проверяем, что координаты валидные
     if (isNaN(txLat) || isNaN(txLon) || isNaN(rxLat) || isNaN(rxLon)) {
         alert("Пожалуйста, введите корректные координаты.");
@@ -63,15 +63,15 @@ function calculate() {
     }
     // Формируем данные для отправки
     const data = {
-        tx_lat: parseFloat(document.getElementById("transmitter-lat").value),
-        tx_lon: parseFloat(document.getElementById("transmitter-lon").value),
+        tx_lat: txLat,
+        tx_lon: txLon,
         tx_height: parseFloat(document.getElementById("transmitter-height").value),
     
-        rx_lat: parseFloat(document.getElementById("receiver-lat").value),
-        rx_lon: parseFloat(document.getElementById("receiver-lon").value),
+        rx_lat: rxLat,
+        rx_lon: rxLon,
         rx_height: parseFloat(document.getElementById("receiver-height").value),
     
-        power: parseFloat(document.getElementById("power").value),
+        erp: parseFloat(document.getElementById("erp").value),
         frequency: parseFloat(document.getElementById("frequency").value),
         
         polarization_type: document.getElementById("polarization").value,
@@ -98,7 +98,8 @@ function calculate() {
         return response.json();
     })
     .then(result => {
-        alert('Успешный ответ:', result);
+        // alert('Успешный ответ:', result);
+        window.location.href = '/results';
     })
     .catch(error => {
         alert('Ошибка:', error);

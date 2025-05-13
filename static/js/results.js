@@ -1,25 +1,22 @@
 const imageList = [
-    { label: "Mountain", query: "mountain" },
-    { label: "Beach", query: "beach" },
-    { label: "Forest", query: "forest" },
-    { label: "Desert", query: "desert" },
-    { label: "City", query: "city" }
-  ];
+  { label: "Terrain profile", query: "static/splat/terrain_profile.png", id: "terrain_profile" },
+  { label: "Elevation profile", query: "static/splat/elevation_profile.png", id: "elevation_profile" },
+  { label: "Height profile", query: "static/splat/height_profile.png", id: "height_profile" },
+  { label: "Height profile norm", query: "static/splat/height_profile_norm.png", id: "height_profile_norm" },
+  { label: "Path loss profile", query: "static/splat/path_loss_profile.png", id: "path_loss_profile" },
+  { label: "TX-RX line map", query: "static/splat/tx_rx_line_map.ppm", id: "tx_rx_line_map" },
+];
 
-  const sidebar = document.getElementById('sidebar');
-  const imageEl = document.getElementById('image');
+const sidebar = document.getElementById('sidebar');
+const imageEl = document.getElementById('image');
 
-  const fetchImage = async (query) => {
-    const response = await fetch(`https://source.unsplash.com/800x600/?${query}`);
-    imageEl.src = response.url;
-  };
+imageList.forEach(item => {
+  const button = document.createElement('button');
+  button.textContent = item.label;
+  button.id = item.id;
+  button.addEventListener('click', () => imageEl.src = item.query);
+  sidebar.appendChild(button);
+});
 
-  imageList.forEach(item => {
-    const button = document.createElement('button');
-    button.textContent = item.label;
-    button.addEventListener('click', () => fetchImage(item.query));
-    sidebar.appendChild(button);
-  });
-
-  // Load first image by default
-  fetchImage(imageList[0].query);
+const firstButton = document.getElementById('terrain_profile');
+firstButton.click(); // Trigger the click event on the first button to load the default image
