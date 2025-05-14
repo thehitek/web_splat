@@ -1,4 +1,5 @@
 import os
+import shutil
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -8,6 +9,21 @@ from starlette.requests import Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.helpers.splat_helper import SplatHelper
+
+class NoCacheStaticFiles(StaticFiles):
+    def __init__(self, *args, **kwargs):
+        self.cachecontrol = "max-age=0, no-cache, no-store, , must-revalidate"
+        self.pragma = "no-cache"
+        self.expires = "0"
+        super().__init__(*args, **kwargs)
+
+    def file_response(self, *args, **kwargs):
+        resp = super().file_response(*args, **kwargs)
+        resp.headers.setdefault("Cache-Control", self.cachecontrol)
+        resp.headers.setdefault("Pragma", self.pragma)
+        resp.headers.setdefault("Expires", self.expires)
+        return resp
+    
 
 app = FastAPI()
 
@@ -20,7 +36,7 @@ app.add_middleware(
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", NoCacheStaticFiles(directory="static"), name="static")
 
 # Set up templates
 templates = Jinja2Templates(directory="templates")
@@ -49,6 +65,10 @@ class InputData(BaseModel):
     radioclimate: int
     atmospheric_bending_constant: float
 
+    earth_dielectric_constant: int
+    earth_conductivity: float
+
+
 @app.post("/input-data")
 async def set_input_data(dt: InputData):
     global input_data
@@ -64,6 +84,8 @@ async def read_results(request: Request):
                                  sdf_path=os.path.join(splat_root, "sdf/"))
     global input_data
 
+    # shutil.rmtree("static/splat/*", ignore_errors=True)
+
     with open("static/splat/tx.qth", "w") as f:
         f.write(f"TX\n{input_data.tx_lat}\n{input_data.tx_lon}\n{input_data.tx_height}")
     
@@ -71,8 +93,8 @@ async def read_results(request: Request):
         f.write(f"RX\n{input_data.rx_lat}\n{input_data.rx_lon}\n{input_data.rx_height}")
 
     with open("static/splat/splat.lrp", "w") as f:
-        f.write("5\n")
-        f.write("0.001\n")
+        f.write(f"{input_data.earth_dielectric_constant}\n")
+        f.write(f"{input_data.earth_conductivity}\n")
         f.write(f"{input_data.atmospheric_bending_constant}\n")
         f.write(f"{input_data.frequency}\n")
         f.write(f"{input_data.radioclimate}\n")
@@ -84,25 +106,38 @@ async def read_results(request: Request):
     res_calc_kml = splat_instance.calculate_kml()
     print(res_calc_kml.stderr, res_calc_kml.stdout, res_calc_kml.returncode)
     
-    # res_calc_trn = splat_instance.calculate_terrain_profile()
-    # print(res_calc_trn.stderr, res_calc_trn.stdout, res_calc_trn.returncode)
+    res_calc_trn = splat_instance.calculate_terrain_profile()
+    print(res_calc_trn.stderr, res_calc_trn.stdout, res_calc_trn.returncode)
     
-    # res_calc_elev = splat_instance.calculate_elevation_profile()
-    # print(res_calc_elev.stderr, res_calc_elev.stdout, res_calc_elev.returncode)
+    res_calc_elev = splat_instance.calculate_elevation_profile()
+    print(res_calc_elev.stderr, res_calc_elev.stdout, res_calc_elev.returncode)
 
-    # res_calc_hgt = splat_instance.calculate_height_profile()
-    # print(res_calc_hgt.stderr, res_calc_hgt.stdout, res_calc_hgt.returncode)
+    res_calc_hgt = splat_instance.calculate_height_profile()
+    print(res_calc_hgt.stderr, res_calc_hgt.stdout, res_calc_hgt.returncode)
 
-    # res_calc_hgt_norm = splat_instance.calculate_height_profile_norm()
-    # print(res_calc_hgt_norm.stderr, res_calc_hgt_norm.stdout, res_calc_hgt_norm.returncode)
+    res_calc_hgt_norm = splat_instance.calculate_height_profile_norm()
+    print(res_calc_hgt_norm.stderr, res_calc_hgt_norm.stdout, res_calc_hgt_norm.returncode)
 
-    # res_calc_path_loss = splat_instance.calculate_path_loss_profile()
-    # print(res_calc_path_loss.stderr, res_calc_path_loss.stdout, res_calc_path_loss.returncode)
+    res_calc_path_loss = splat_instance.calculate_path_loss_profile()
+    print(res_calc_path_loss.stderr, res_calc_path_loss.stdout, res_calc_path_loss.returncode)
 
-    # res_calc_tx_rx_line_map = splat_instance.calculate_tx_rx_line_map()
-    # print(res_calc_tx_rx_line_map.stderr, res_calc_tx_rx_line_map.stdout, res_calc_tx_rx_line_map.returncode)
+    res_calc_tx_cvrg = splat_instance.calculate_tx_coverage_map(input_data.rx_height)
+    print(res_calc_tx_cvrg.stderr, res_calc_tx_cvrg.stdout, res_calc_tx_cvrg.returncode)
 
-    # res_calc_tx_cvrg = splat_instance.calculate_tx_coverage_map(25)
-    # print(res_calc_tx_cvrg.stderr, res_calc_tx_cvrg.stdout, res_calc_tx_cvrg.returncode)
+    with open("static/splat/splat.lrp", "w") as f:
+        f.write(f"{input_data.earth_dielectric_constant}\n")
+        f.write(f"{input_data.earth_conductivity}\n")
+        f.write(f"{input_data.atmospheric_bending_constant}\n")
+        f.write(f"{input_data.frequency}\n")
+        f.write(f"{input_data.radioclimate}\n")
+        f.write(f"{int(input_data.polarization_type)}\n")
+        f.write(f"{input_data.situations_fraction}\n")
+        f.write(f"{input_data.time_fraction}\n")
+    
+    res_calc_tx_loss = splat_instance.calculate_tx_loss_map(input_data.rx_height)
+    print(res_calc_tx_loss.stderr, res_calc_tx_loss.stdout, res_calc_tx_loss.returncode)
+
+    res_calc_tx_field = splat_instance.calculate_tx_field_map(input_data.rx_height, input_data.erp)
+    print(res_calc_tx_field.stderr, res_calc_tx_field.stdout, res_calc_tx_field.returncode)
 
     return templates.TemplateResponse("results.html", {"request": request})

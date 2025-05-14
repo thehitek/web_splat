@@ -1,6 +1,8 @@
 import subprocess
 import os
 
+from PIL import Image, ImageFilter
+
 class SplatHelper:
     def __init__(self, 
                  splat_path: 
@@ -88,65 +90,120 @@ class SplatHelper:
 
     def calculate_kml(self):
         """Generate Google Earth (.kml) compatible output"""
+        filename = "TX-to-RX.kml"
+        filepath = os.path.join(self.working_dir, filename)
+        os.remove(filepath) if os.path.exists(filepath) else None
+        # Remove the existing KML file if it exists
         return self.run("-t", "tx.qth", 
                         "-r", "rx.qth", 
                         "-kml")
     
     def calculate_terrain_profile(self):
         """Generate terrain profile"""
-        filepath = "terrain_profile.png"
+        filename = "terrain_profile.png"
+        filepath = os.path.join(self.working_dir, filename)
+
         os.remove(filepath) if os.path.exists(filepath) else None
         return self.run("-t", "tx.qth", 
                         "-r", "rx.qth", 
-                        "-p", filepath)
+                        "-p", filename)
     
     def calculate_elevation_profile(self):
-        filepath = "elevation_profile.png"
+        """Generate elevation profile"""
+
+        filename = "elevation_profile.png"
+        filepath = os.path.join(self.working_dir, filename)
+
         os.remove(filepath) if os.path.exists(filepath) else None
         return self.run("-t", "tx.qth", 
                         "-r", "rx.qth", 
-                        "-e", filepath)
+                        "-e", filename)
     
     def calculate_height_profile(self):
         """Generate height profile"""
-        filepath = "height_profile.png"
+        filename = "height_profile.png"
+        filepath = os.path.join(self.working_dir, filename)
+
         os.remove(filepath) if os.path.exists(filepath) else None
         return self.run("-t", "tx.qth", 
                         "-r", "rx.qth", 
-                        "-h", filepath)
+                        "-h", filename)
     
     def calculate_height_profile_norm(self):
         """Generate normalized height profile"""
-        filepath = "height_profile_norm.png"
+        filename = "height_profile_norm.png"
+        filepath = os.path.join(self.working_dir, filename)
+
         os.remove(filepath) if os.path.exists(filepath) else None
         return self.run("-t", "tx.qth", 
                         "-r", "rx.qth", 
-                        "-H", filepath)
+                        "-H", filename)
     
     def calculate_path_loss_profile(self):
         """Generate path loss profile"""
-        filepath = "path_loss_profile.png"
+        filename = "path_loss_profile.png"
+        filepath = os.path.join(self.working_dir, filename)
+
         os.remove(filepath) if os.path.exists(filepath) else None
         return self.run("-t", "tx.qth", 
                         "-r", "rx.qth", 
-                        "-l", filepath)
-    
-    def calculate_tx_rx_line_map(self):
-        """Generate tx-rx line map"""
-        filepath = "tx_rx_line_map.ppm"
-        os.remove(filepath) if os.path.exists(filepath) else None
-        return self.run("-t", "tx.qth", 
-                        "-r", "rx.qth", 
-                        "-o", filepath)
+                        "-l", filename)
+
     
     def calculate_tx_coverage_map(self, rx_antenna_height: int):
         """Generate tx coverage map"""
-        filepath = "tx_coverage_map.ppm"
-        os.remove(filepath) if os.path.exists(filepath) else None
-        return self.run("-t", "tx.qth", 
+        ppm_filename = "tx_coverage_map.ppm"
+        ppm_filepath = os.path.join(self.working_dir, ppm_filename)
+
+        png_filename = "tx_coverage_map.png"
+        png_filepath = os.path.join(self.working_dir, png_filename)
+
+        os.remove(ppm_filepath) if os.path.exists(ppm_filepath) else None
+        res = self.run("-t", "tx.qth", 
                         "-c", str(rx_antenna_height),
-                        "-o", filepath)
+                        "-o", ppm_filename)
+
+        with Image.open(ppm_filepath) as im:
+                im.filter(ImageFilter.DETAIL)
+                im.save(png_filepath, "PNG")
+        return res
     
+    def calculate_tx_loss_map(self, rx_antenna_height: int):
+        """Generate tx loss map"""
+        ppm_filename = "tx_loss_map.ppm"
+        ppm_filepath = os.path.join(self.working_dir, ppm_filename)
+
+        png_filename = "tx_loss_map.png"
+        png_filepath = os.path.join(self.working_dir, png_filename)
+        
+        os.remove(ppm_filepath) if os.path.exists(ppm_filepath) else None
+        res = self.run("-t", "tx.qth", 
+                        "-L", str(rx_antenna_height),
+                        "-o", ppm_filename)
+
+        with Image.open(ppm_filepath) as im:
+                im.filter(ImageFilter.DETAIL)
+                im.save(png_filepath, "PNG")
+        return res
+    
+    def calculate_tx_field_map(self, rx_antenna_height: int, erp: float):
+        """Generate tx field map"""
+        ppm_filename = "tx_field_map.ppm"
+        ppm_filepath = os.path.join(self.working_dir, ppm_filename)
+
+        png_filename = "tx_field_map.png"
+        png_filepath = os.path.join(self.working_dir, png_filename)
+
+        os.remove(ppm_filepath) if os.path.exists(ppm_filepath) else None
+        res = self.run("-t", "tx.qth", 
+                        "-L", str(rx_antenna_height),
+                        "-erp", str(erp),
+                        "-o", ppm_filename)
+
+        with Image.open(ppm_filepath) as im:
+                im.filter(ImageFilter.DETAIL)
+                im.save(png_filepath, "PNG")
+        return res
     
 
 

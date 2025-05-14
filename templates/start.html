@@ -56,6 +56,19 @@
                 <label>Постоянная изгиба атмосферы</label>
                 <input id="atmospheric-bending-constant" type="number" id="k" value="300" step="1" min="1" max="1000">
                 
+                <label>Местность:</label>
+                <select id="terrain-type">
+                    <option value="1">Соленая вода</option>
+                    <option value="2">Ровная Земля</option>
+                    <option value="3">Чистая вода</option>
+                    <option value="4">Болото</option>
+                    <option value="5">Ферма, лес</option>
+                    <option value="6">Небольшая возвышенность</option>
+                    <option value="7">Горы, гравий</option>
+                    <option value="8" selected>Город</option>
+                    <option value="9">Низменность</option>
+                </select>
+
                 <button id="calculate">Рассчитать</button>
             </aside>
         </section>

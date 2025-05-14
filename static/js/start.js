@@ -62,6 +62,37 @@ function calculate() {
         return;
     }
     // Формируем данные для отправки
+
+    function getEarthDielectricConstant(i) {
+        switch (i){
+            case 1: return 80;
+            case 2: return 25;
+            case 3: return 80;
+            case 4: return 12;
+            case 5: return 15;
+            case 6: return 15;
+            case 7: return 13;
+            case 8: return 5;
+            case 9: return 4;
+            default: return 5; // Default to City
+        }
+    }
+
+    function getEarthConductivity(i) {
+        switch (i){
+            case 1: return 5.0;
+            case 2: return 0.02;
+            case 3: return 0.01;
+            case 4: return 0.007;
+            case 5: return 0.005;
+            case 6: return 0.005;
+            case 7: return 0.002;
+            case 8: return 0.001;
+            case 9: return 0.001;
+            default: return 0.001; // Default to City
+        }
+    }
+
     const data = {
         tx_lat: txLat,
         tx_lon: txLon,
@@ -81,6 +112,9 @@ function calculate() {
     
         radioclimate: document.getElementById("radioclimate").value,
         atmospheric_bending_constant: parseFloat(document.getElementById("atmospheric-bending-constant").value),
+
+        earth_dielectric_constant: getEarthDielectricConstant(parseInt(document.getElementById("terrain-type").value)),
+        earth_conductivity: getEarthConductivity(parseInt(document.getElementById("terrain-type").value)),
     }
 
     // Отправляем POST запрос
