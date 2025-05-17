@@ -58,6 +58,18 @@ main {
     background: #0056b3;
 }
 
+.control-panel select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    box-sizing: border-box;
+    max-width: 100%;
+    font-size: 14px;
+}
+
 .map-container {
     flex: 1;
     display: flex;
@@ -72,4 +84,5 @@ main {
     border: 1px solid #ccc;
     margin-bottom: 20px;
 }
+
 
