@@ -11,6 +11,10 @@
         <section class="control-panel-container">
             <aside class="control-panel" id="left-panel">
                 <h2>Настройки</h2>
+                <!-- Добавлено: выбор директории -->
+                <label for="directory-input">Выберите папку с файлами:</label>
+                <input type="file" id="directory-input" webkitdirectory directory multiple style="margin-bottom: 10px;">
+                
                 <label>Координаты передатчика:</label>
                 <input type="text" id="transmitter-lat" placeholder="Широта">
                 <input type="text" id="transmitter-lon" placeholder="Долгота">
