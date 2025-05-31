@@ -117,25 +117,68 @@ function calculate() {
         earth_conductivity: getEarthConductivity(parseInt(document.getElementById("terrain-type").value)),
     }
 
-    // Отправляем POST запрос
-    fetch('http://127.0.0.1:8000/input-data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка при отправке данных');
+    // Получаем выбранные файлы из директории
+    const directoryInput = document.getElementById("directory-input");
+    const files = directoryInput && directoryInput.files ? directoryInput.files : null;
+
+    if (files && files.length > 0) {
+        // Сначала отправляем файлы на /upload-files
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i], files[i].webkitRelativePath || files[i].name);
         }
-        return response.json();
-    })
-    .then(result => {
-        // alert('Успешный ответ:', result);
-        window.location.href = '/results';
-    })
-    .catch(error => {
-        alert('Ошибка:', error);
-    });
+        fetch('http://127.0.0.1:8000/upload-files', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке файлов');
+            }
+            return response.json();
+        })
+        .then(result => {
+            // После успешной загрузки файлов отправляем данные на /input-data
+            return fetch('http://127.0.0.1:8000/input-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при отправке данных');
+            }
+            return response.json();
+        })
+        .then(result => {
+            window.location.href = '/results';
+        })
+        .catch(error => {
+            alert('Ошибка:', error);
+        });
+    } else {
+        // Если файлов нет, отправляем только JSON как раньше
+        fetch('http://127.0.0.1:8000/input-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при отправке данных');
+            }
+            return response.json();
+        })
+        .then(result => {
+            window.location.href = '/results';
+        })
+        .catch(error => {
+            alert('Ошибка:', error);
+        });
+    }
 }

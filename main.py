@@ -1,12 +1,13 @@
 import os
 import shutil
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from starlette.requests import Request
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Optional
 
 from src.helpers.splat_helper import SplatHelper
 
@@ -73,6 +74,27 @@ class InputData(BaseModel):
 async def set_input_data(dt: InputData):
     global input_data
     input_data = dt
+
+
+@app.post("/upload-files")
+async def upload_files(files: List[UploadFile] = File(...)):
+    """
+    Загружает файлы и сохраняет их в third_party/splat/sdf/ с заменой.
+    """
+    sdf_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "third_party/splat/sdf")
+    os.makedirs(sdf_dir, exist_ok=True)
+    # Очищаем директорию перед загрузкой новых файлов
+    for f in os.listdir(sdf_dir):
+        file_path = os.path.join(sdf_dir, f)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+    for upload in files:
+        dest_path = os.path.join(sdf_dir, os.path.basename(upload.filename))
+        with open(dest_path, "wb") as out_file:
+            content = await upload.read()
+            out_file.write(content)
+    return {"status": "ok", "files_uploaded": len(files)}
+
 
 @app.get("/results", response_class=HTMLResponse)
 async def read_results(request: Request):
